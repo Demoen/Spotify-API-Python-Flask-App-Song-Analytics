@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spotify Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #121212;
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        h1, h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        p {
+            font-size: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        img {
+            border-radius: 4px;
+        }
+
+        a {
+            font-size: 1rem;
+            color: #1DB954;
+            text-decoration: none;
+            margin-top: 2rem;
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background-color: rgba(29, 185, 84, 0.1);
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        a:hover {
+            background-color: rgba(29, 185, 84, 0.2);
+        }
+
+        canvas {
+            max-width: 600px;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <h1>{{ track_info.artist }} - {{ track_info.track_name }}</h1>
+    <p><strong>Album:</strong> {{ track_info.album }}</p>
+    <p><strong>Release Date:</strong> {{ track_info.release_date }}</p>
+    <p><strong>Popularity:</strong> {{ track_info.popularity }}</p>
+    <p><strong>Duration (ms):</strong> {{ track_info.duration_ms }}</p>
+    <p><strong>Album Cover:</strong> <img src="{{ track_info.album_cover_url }}" alt="Album Cover" width="200"></p>
+    <p><strong>Preview URL:</strong> <a href="{{ track_info.preview_url }}" target="_blank">Listen</a></p>
+    <h2>Audio Features</h2>
+    <ul>
+        {% for key, value in track_info.audio_features.items() %}
+            <li><strong>{{ key.capitalize() }}:</strong> {{ value }}</li>
+        {% endfor %}
+    </ul>
+    <h2>Audio Analysis</h2>
+    <ul>
+        <li><strong>Number of Sections:</strong> {{ track_info.audio_analysis.sections | length }}</li>
+        <li><strong>Number of Segments:</strong> {{ track_info.audio_analysis.segments | length }}</li>
+        <canvas id="loudnessChart"></canvas>
+    </ul>
+    <a href="/">Search for another song</a>
+    <script>
+        const loudnessData = {{ track_info.audio_analysis.sections | map(attribute='loudness') | list | tojson }};
+        const ctx = document.getElementById('loudnessChart').getContext('2d');
+        const chart = new Chart(ctx, {
+            type:
+            'bar',
+            data: {
+                labels: loudnessData.map((_, index) => `Section ${index + 1}`),
+                datasets: [{
+                    label: 'Loudness (dB)',
+                    data: loudnessData,
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: false
+                    }
+                }
+            }
+        });
+    </script>    
+</body>
+</html>
